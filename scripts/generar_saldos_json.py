@@ -87,4 +87,34 @@ def to_num(v):
         except Exception:
             return 0.0
 
-for k in ['libre', 'inspeccion', 'bloqueado', 
+for k in ['libre', 'inspeccion', 'bloqueado', 'traslado']:
+    if k not in df.columns:
+        df[k] = 0.0
+    df[k] = df[k].map(to_num)
+
+df = df[(df['codigo'] != '') & (~df['codigo'].str.lower().str.contains('title data', na=False))]
+df = df[~df['codigo'].str.contains('-----', na=False)]
+df['nombre'] = df['nombre'].str.replace(r'\s+', ' ', regex=True)
+df['search'] = (df['codigo'] + ' ' + df['nombre']).str.lower()
+df['total'] = df[['libre', 'inspeccion', 'bloqueado', 'traslado']].sum(axis=1)
+df = df.sort_values(['total', 'codigo'], ascending=[False, True]).reset_index(drop=True)
+
+records = df[
+    ['codigo', 'nombre', 'centro', 'almacen', 'libre', 'inspeccion', 'bloqueado', 'traslado', 'total', 'search']
+].to_dict(orient='records')
+
+JSON_OUT.write_text(
+    json.dumps(records, ensure_ascii=False, separators=(',', ':')),
+    encoding='utf-8'
+)
+
+df[
+    ['codigo', 'nombre', 'centro', 'almacen', 'libre', 'inspeccion', 'bloqueado', 'traslado', 'total']
+].to_csv(CSV_OUT, index=False, encoding='utf-8')
+
+print({
+    'sheet': best_sheet,
+    'rows': int(len(df)),
+    'json': str(JSON_OUT),
+    'csv': str(CSV_OUT)
+})
