@@ -9,7 +9,7 @@ ASSETS.mkdir(exist_ok=True)
 JSON_OUT = ASSETS / 'saldos.json'
 CSV_OUT = ASSETS / 'saldos-procesados.csv'
 
-raw = pd.read_excel(XLSX, sheet_name='Data', header=3)
+raw = pd.read_excel(XLSX, sheet_name='Sheet1', header=3)
 raw.columns = [str(c).strip() for c in raw.columns]
 
 df = raw[['Material', 'Descripción material', 'Stock disponible', 'Ubicación']].copy()
