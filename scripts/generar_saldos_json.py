@@ -3,7 +3,7 @@ import pandas as pd
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parent.parent
-XLSX = BASE / 'saldosLX02.xlsx'
+XLSX = BASE / 'DATA_LX02.xlsx'
 ASSETS = BASE / 'assets'
 ASSETS.mkdir(exist_ok=True)
 JSON_OUT = ASSETS / 'saldos.json'
@@ -12,10 +12,10 @@ CSV_OUT = ASSETS / 'saldos-procesados.csv'
 xl = pd.ExcelFile(XLSX)
 sheet = xl.sheet_names[0]
 
-raw = pd.read_excel(XLSX, sheet_name=sheet, header=3)
+raw = pd.read_excel(XLSX, sheet_name=sheet, header=0)
 raw.columns = [str(c).strip() for c in raw.columns]
 
-df = raw[['Material', 'Descripción material', 'Stock disponible', 'Ubicación']].copy()
+df = raw[['Material', 'Descripción del material', 'Stock disponible', 'Ubicación']].copy()
 df.columns = ['codigo', 'nombre', 'disponible', 'ubicacion']
 
 df['codigo'] = df['codigo'].fillna('').astype(str).str.strip()
@@ -48,6 +48,7 @@ JSON_OUT.write_text(json.dumps(records, ensure_ascii=False, separators=(',', ':'
 df[['codigo', 'nombre', 'disponible', 'ubicacion']].to_csv(CSV_OUT, index=False, encoding='utf-8')
 
 print({
+    'file': str(XLSX.name),
     'sheet': sheet,
     'rows': int(len(df)),
     'json': str(JSON_OUT),
