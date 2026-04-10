@@ -9,7 +9,10 @@ ASSETS.mkdir(exist_ok=True)
 JSON_OUT = ASSETS / 'saldos.json'
 CSV_OUT = ASSETS / 'saldos-procesados.csv'
 
-raw = pd.read_excel(XLSX, sheet_name='Data', header=3)
+xl = pd.ExcelFile(XLSX)
+sheet = xl.sheet_names[0]
+
+raw = pd.read_excel(XLSX, sheet_name=sheet, header=3)
 raw.columns = [str(c).strip() for c in raw.columns]
 
 df = raw[['Material', 'Descripción material', 'Stock disponible', 'Ubicación']].copy()
@@ -44,4 +47,9 @@ records = df[['codigo', 'nombre', 'disponible', 'ubicacion', 'search']].to_dict(
 JSON_OUT.write_text(json.dumps(records, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
 df[['codigo', 'nombre', 'disponible', 'ubicacion']].to_csv(CSV_OUT, index=False, encoding='utf-8')
 
-print({'rows': int(len(df)), 'json': str(JSON_OUT), 'csv': str(CSV_OUT)})
+print({
+    'sheet': sheet,
+    'rows': int(len(df)),
+    'json': str(JSON_OUT),
+    'csv': str(CSV_OUT)
+})
