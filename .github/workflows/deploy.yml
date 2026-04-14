@@ -13,9 +13,34 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
+
+      - name: Ver archivos disponibles
+        run: |
+          pwd
+          echo "----- RAIZ DEL REPO -----"
+          ls -la
+          echo "----- ARCHIVOS HASTA 2 NIVELES -----"
+          find . -maxdepth 2 -type f | sort
+
+      - name: Verificar archivos Excel esperados
+        run: |
+          if [ -f "DATA_MB52.xlsx" ]; then
+            echo "OK: existe DATA_MB52.xlsx"
+          else
+            echo "ERROR: no existe DATA_MB52.xlsx"
+            exit 1
+          fi
+
+          if [ -f "DATA_LX02.xlsx" ]; then
+            echo "OK: existe DATA_LX02.xlsx"
+          else
+            echo "ERROR: no existe DATA_LX02.xlsx"
+            exit 1
+          fi
 
       - name: Instalar Python
         uses: actions/setup-python@v5
@@ -28,12 +53,30 @@ jobs:
       - name: Generar JSON desde Excel
         run: python scripts/generar_saldos_json.py
 
+      - name: Revisar JSON generado
+        run: |
+          echo "----- ARCHIVOS EN ASSETS -----"
+          ls -la assets
+          echo "----- INICIO JSON -----"
+          head -c 1200 assets/saldos.json
+          echo
+          echo "----- FIN JSON -----"
+
       - name: Preparar sitio
         run: |
           mkdir -p site/assets
           cp consulta-saldos.html site/index.html
           cp assets/saldos.json site/assets/saldos.json
           cp assets/saldos-procesados.csv site/assets/saldos-procesados.csv
+
+      - name: Revisar contenido final a publicar
+        run: |
+          echo "----- ARCHIVOS EN SITE -----"
+          find site -maxdepth 2 -type f | sort
+          echo "----- INICIO JSON PUBLICADO -----"
+          head -c 1200 site/assets/saldos.json
+          echo
+          echo "----- FIN JSON PUBLICADO -----"
 
       - name: Subir artefacto de Pages
         uses: actions/upload-pages-artifact@v3
@@ -46,6 +89,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+
     steps:
       - name: Publicar en GitHub Pages
         id: deployment
